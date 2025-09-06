@@ -24,3 +24,14 @@ if (window.location.pathname.includes("dashboard.html")) {
     window.location.href = "admin.html";
   }
 }
+function submitBooking(event) {
+  event.preventDefault();
+
+  let pickup = document.getElementById("pickup").value;
+  let drop = document.getElementById("drop").value;
+  let rideType = document.getElementById("rideType").value;
+
+  document.getElementById("confirmation").innerText =
+    `✅ Booking Confirmed! ${rideType} from ${pickup} to ${drop}`;
+}
+

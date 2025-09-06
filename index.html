@@ -3,268 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xtravels App</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-    header {
-      background: limegreen;
-      padding: 15px;
-      font-size: 22px;
-      font-weight: bold;
-      color: black;
-    }
-    .card {
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 0 5px limegreen;
-    }
-    #map, #driverMap {
-      height: 400px;
-      width: 100%;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-    }
-    button {
-      background: limegreen;
-      color: black;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-    button:hover {
-      background: #00cc44;
-    }
-    #eta {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      color: lime;
-    }
-  </style>
-</head>
-<body>
-  <header>🚖 Xtravels</header>
+  <title>Xtravels - Book Your Ride</title>
 
-  <div class="card" id="bookingCard">
-    <h2>Book Your Ride</h2>
-    <input type="text" id="pickup" placeholder="Enter Pickup Location">
-    <input type="text" id="drop" placeholder="Enter Drop Location">
-    <button onclick="setLocations()">Set Locations</button>
-    <div id="map"></div>
-    <button onclick="estimateFare()">Estimate Fare</button>
-  </div>
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
 
-  <div class="card" id="fareCard" style="display:none;">
-    <h2>Fare Estimate</h2>
-    <p id="fareText"></p>
-    <button onclick="assignDriver()">Confirm Ride</button>
-    <button onclick="backToBooking()">Back</button>
-  </div>
+  <!-- Manifest for PWA -->
+  <link rel="manifest" href="manifest.json">
 
-  <div class="card" id="driverCard" style="display:none;">
-    <h2>Driver Assigned</h2>
-    <p><b>Name:</b> Ramesh Kumar</p>
-    <p><b>Car:</b> Toyota Etios (KA-01-1234)</p>
-    <p><b>Phone:</b> +91 9876543210</p>
-    <div id="driverMap"></div>
-    <p id="eta">⏳ Calculating ETA...</p>
-    <button onclick="cancelRide()">❌ Cancel Ride</button>
-  </div>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Register Service Worker -->
   <script>
-    let map, pickupMarker, dropMarker, pickupCoords, dropCoords, routeLine, routeCoords;
-    let driverMap, driverMarker, driverLat, driverLng, interval, driverRouteLine;
-    let etaTimer;
-
-    // Initialize booking map
-    map = L.map('map').setView([20.5937, 78.9629], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
-
-    // Geocode function
-    async function geocode(location) {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      }
-      return null;
-    }
-
-    async function setLocations() {
-      const pickup = document.getElementById("pickup").value;
-      const drop = document.getElementById("drop").value;
-
-      pickupCoords = await geocode(pickup);
-      dropCoords = await geocode(drop);
-
-      if (!pickupCoords || !dropCoords) {
-        alert("Could not find one of the locations. Please try again.");
-        return;
-      }
-
-      if (pickupMarker) map.removeLayer(pickupMarker);
-      if (dropMarker) map.removeLayer(dropMarker);
-      if (routeLine) map.removeLayer(routeLine);
-
-      pickupMarker = L.marker(pickupCoords).addTo(map).bindPopup("📍 " + pickup).openPopup();
-      dropMarker = L.marker(dropCoords).addTo(map).bindPopup("🏁 " + drop);
-
-      map.fitBounds([pickupCoords, dropCoords], {padding: [50, 50]});
-    }
-
-    async function estimateFare() {
-      if (!pickupCoords || !dropCoords) {
-        alert("Please set pickup and drop first.");
-        return;
-      }
-
-      // OSRM API
-      const url = `https://router.project-osrm.org/route/v1/driving/${pickupCoords[1]},${pickupCoords[0]};${dropCoords[1]},${dropCoords[0]}?overview=full&geometries=geojson`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (!data.routes || data.routes.length === 0) {
-        alert("Could not calculate route. Try again.");
-        return;
-      }
-
-      const distanceKm = data.routes[0].distance / 1000;
-      const fare = Math.max(50, distanceKm * 18);
-
-      // Draw polyline
-      routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-      if (routeLine) map.removeLayer(routeLine);
-      routeLine = L.polyline(routeCoords, {color: 'lime'}).addTo(map);
-
-      map.fitBounds(routeLine.getBounds());
-
-      document.getElementById("bookingCard").style.display = "none";
-      document.getElementById("fareCard").style.display = "block";
-
-      document.getElementById("fareText").innerText =
-        `Estimated Fare: ₹${fare.toFixed(0)} for ${distanceKm.toFixed(1)} km`;
-    }
-
-    function backToBooking() {
-      document.getElementById("fareCard").style.display = "none";
-      document.getElementById("bookingCard").style.display = "block";
-    }
-
-    function assignDriver() {
-      document.getElementById("fareCard").style.display = "none";
-      document.getElementById("driverCard").style.display = "block";
-
-      driverMap = L.map('driverMap').setView(pickupCoords, 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(driverMap);
-
-      L.marker(pickupCoords).addTo(driverMap).bindPopup("📍 Pickup");
-      L.marker(dropCoords).addTo(driverMap).bindPopup("🏁 Drop");
-
-      // Show same polyline in driver map
-      driverRouteLine = L.polyline(routeCoords, {color: 'lime'}).addTo(driverMap);
-      driverMap.fitBounds(driverRouteLine.getBounds());
-
-      driverLat = pickupCoords[0] - 0.03;
-      driverLng = pickupCoords[1] - 0.03;
-
-      driverMarker = L.marker([driverLat, driverLng], {icon: L.icon({
-        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
-        iconSize: [40, 40]
-      })}).addTo(driverMap).bindPopup("🚖 Driver");
-
-      interval = setInterval(moveDriverToPickup, 2000);
-
-      // Start ETA timer
-      etaTimer = setInterval(updateETA, 2000);
-    }
-
-    function updateETA() {
-      let etaElem = document.getElementById("eta");
-      let remainingKm = getDistance(driverLat, driverLng, pickupCoords[0], pickupCoords[1]);
-      let speedKmph = 30; // Assume avg 30 km/h in city
-      let etaMin = Math.max(1, (remainingKm / speedKmph) * 60);
-
-      if (interval && document.getElementById("driverCard").style.display === "block") {
-        etaElem.innerText = `⏳ Driver arriving in ${etaMin.toFixed(0)} mins`;
-      }
-    }
-
-    function moveDriverToPickup() {
-      if (Math.abs(driverLat - pickupCoords[0]) < 0.0005 && Math.abs(driverLng - pickupCoords[1]) < 0.0005) {
-        driverMarker.bindPopup("✅ Driver Arrived!").openPopup();
-        clearInterval(interval);
-        setTimeout(() => {
-          interval = setInterval(moveDriverToDrop, 2000);
-        }, 3000);
-        return;
-      }
-
-      driverLat += (pickupCoords[0] - driverLat) * 0.05;
-      driverLng += (pickupCoords[1] - driverLng) * 0.05;
-      driverMarker.setLatLng([driverLat, driverLng]);
-    }
-
-    function moveDriverToDrop() {
-      if (Math.abs(driverLat - dropCoords[0]) < 0.0005 && Math.abs(driverLng - dropCoords[1]) < 0.0005) {
-        driverMarker.bindPopup("🏁 Ride Completed!").openPopup();
-        clearInterval(interval);
-        clearInterval(etaTimer);
-        document.getElementById("eta").innerText = "✅ Ride Completed";
-        return;
-      }
-
-      driverLat += (dropCoords[0] - driverLat) * 0.05;
-      driverLng += (dropCoords[1] - driverLng) * 0.05;
-      driverMarker.setLatLng([driverLat, driverLng]);
-    }
-
-    function cancelRide() {
-      clearInterval(interval);
-      clearInterval(etaTimer);
-      alert("❌ Ride Cancelled");
-      location.reload();
-    }
-
-    // Utility: Haversine formula
-    function getDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c; // in km
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js")
+        .then(() => console.log("✅ Service Worker Registered"))
+        .catch(err => console.error("❌ Service Worker Failed", err));
     }
   </script>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>🚖 Xtravels</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="rides.html">Book Ride</a>
+      <a href="login.html">Login</a>
+      <a href="admin-login.html">Admin</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="hero">
+    <h2>Your Ride, Your Way</h2>
+    <p>Book city rides, outstation, or rentals instantly!</p>
+    <button onclick="location.href='rides.html'">Book Now</button>
+  </section>
+
+  <!-- Services -->
+  <section id="services">
+    <h2>Our Services</h2>
+    <div class="card">🚖 City Rides</div>
+    <div class="card">🚘 Outstation</div>
+    <div class="card">🚐 Rentals</div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 Xtravels. All rights reserved.</p>
+  </footer>
 </body>
 </html>

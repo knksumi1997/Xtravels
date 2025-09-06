@@ -93,17 +93,32 @@
     let driverMap, driverMarker, driverLat, driverLng, interval;
 
     // Initialize booking map
-    map = L.map('map').setView([12.9716, 77.5946], 13);
+    map = L.map('map').setView([20.5937, 78.9629], 5); // India default view
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    function setLocations() {
-      const pickup = document.getElementById("pickup").value || "Pickup Point";
-      const drop = document.getElementById("drop").value || "Drop Point";
+    // Geocode function (Nominatim)
+    async function geocode(location) {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      }
+      return null;
+    }
 
-      pickupCoords = [12.9716, 77.5946]; // default Bangalore
-      dropCoords = [12.9816, 77.6046];   // nearby
+    async function setLocations() {
+      const pickup = document.getElementById("pickup").value;
+      const drop = document.getElementById("drop").value;
+
+      pickupCoords = await geocode(pickup);
+      dropCoords = await geocode(drop);
+
+      if (!pickupCoords || !dropCoords) {
+        alert("Could not find one of the locations. Please try again.");
+        return;
+      }
 
       if (pickupMarker) map.removeLayer(pickupMarker);
       if (dropMarker) map.removeLayer(dropMarker);
@@ -122,7 +137,6 @@
       document.getElementById("bookingCard").style.display = "none";
       document.getElementById("fareCard").style.display = "block";
 
-      // Simple distance formula
       let dx = dropCoords[0] - pickupCoords[0];
       let dy = dropCoords[1] - pickupCoords[1];
       let distance = Math.sqrt(dx*dx + dy*dy) * 111; // rough km
@@ -141,17 +155,14 @@
       document.getElementById("fareCard").style.display = "none";
       document.getElementById("driverCard").style.display = "block";
 
-      // Initialize driver map
       driverMap = L.map('driverMap').setView(pickupCoords, 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
       }).addTo(driverMap);
 
-      // Add pickup and drop
       L.marker(pickupCoords).addTo(driverMap).bindPopup("📍 Pickup");
       L.marker(dropCoords).addTo(driverMap).bindPopup("🏁 Drop");
 
-      // Driver starts far away
       driverLat = pickupCoords[0] - 0.03;
       driverLng = pickupCoords[1] - 0.03;
 

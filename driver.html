@@ -62,16 +62,20 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Passenger pickup location (example: Bangalore)
-    let pickupLat = 12.9716;
-    let pickupLng = 77.5946;
+    // Get pickup location from URL
+    const params = new URLSearchParams(window.location.search);
+    const pickupLat = parseFloat(params.get("pickupLat"));
+    const pickupLng = parseFloat(params.get("pickupLng"));
 
-    // Driver starting location (slightly away)
-    let driverLat = 12.9610;
-    let driverLng = 77.5840;
+    // Fallback if no pickup (default Bangalore center)
+    const pickup = [pickupLat || 12.9716, pickupLng || 77.5946];
+
+    // Driver starting location (dummy - a bit away)
+    let driverLat = pickup[0] - 0.02;
+    let driverLng = pickup[1] - 0.02;
 
     // Initialize map
-    const map = L.map('map').setView([pickupLat, pickupLng], 13);
+    const map = L.map('map').setView(pickup, 13);
 
     // Tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -79,7 +83,7 @@
     }).addTo(map);
 
     // Pickup marker
-    const pickupMarker = L.marker([pickupLat, pickupLng]).addTo(map)
+    const pickupMarker = L.marker(pickup).addTo(map)
       .bindPopup("📍 Pickup Location").openPopup();
 
     // Driver marker
@@ -90,14 +94,14 @@
 
     // Function to move driver towards passenger
     function moveDriver() {
-      if (Math.abs(driverLat - pickupLat) < 0.0005 && Math.abs(driverLng - pickupLng) < 0.0005) {
+      if (Math.abs(driverLat - pickup[0]) < 0.0005 && Math.abs(driverLng - pickup[1]) < 0.0005) {
         driverMarker.bindPopup("✅ Driver Arrived!").openPopup();
         clearInterval(interval);
         return;
       }
 
-      driverLat += (pickupLat - driverLat) * 0.05;
-      driverLng += (pickupLng - driverLng) * 0.05;
+      driverLat += (pickup[0] - driverLat) * 0.05;
+      driverLng += (pickup[1] - driverLng) * 0.05;
 
       driverMarker.setLatLng([driverLat, driverLng]);
     }

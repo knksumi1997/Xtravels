@@ -30,7 +30,7 @@
       max-width: 500px;
       box-shadow: 0 0 5px limegreen;
     }
-    #map {
+    #map, #driverMap {
       height: 400px;
       width: 100%;
       border-radius: 10px;
@@ -89,11 +89,11 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    let map, pickupMarker, dropMarker, pickupCoords, dropCoords, routeLine;
-    let driverMap, driverMarker, driverLat, driverLng, interval;
+    let map, pickupMarker, dropMarker, pickupCoords, dropCoords, routeLine, routeCoords;
+    let driverMap, driverMarker, driverLat, driverLng, interval, driverRouteLine;
 
     // Initialize booking map
-    map = L.map('map').setView([20.5937, 78.9629], 5); // India default
+    map = L.map('map').setView([20.5937, 78.9629], 5);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap'
     }).addTo(map);
@@ -136,7 +136,7 @@
         return;
       }
 
-      // OSRM API for route
+      // OSRM API
       const url = `https://router.project-osrm.org/route/v1/driving/${pickupCoords[1]},${pickupCoords[0]};${dropCoords[1]},${dropCoords[0]}?overview=full&geometries=geojson`;
       const res = await fetch(url);
       const data = await res.json();
@@ -149,8 +149,8 @@
       const distanceKm = data.routes[0].distance / 1000;
       const fare = Math.max(50, distanceKm * 18);
 
-      // Draw route polyline
-      const routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      // Draw polyline
+      routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
       if (routeLine) map.removeLayer(routeLine);
       routeLine = L.polyline(routeCoords, {color: 'lime'}).addTo(map);
 
@@ -179,6 +179,10 @@
 
       L.marker(pickupCoords).addTo(driverMap).bindPopup("📍 Pickup");
       L.marker(dropCoords).addTo(driverMap).bindPopup("🏁 Drop");
+
+      // Show same polyline in driver map
+      driverRouteLine = L.polyline(routeCoords, {color: 'lime'}).addTo(driverMap);
+      driverMap.fitBounds(driverRouteLine.getBounds());
 
       driverLat = pickupCoords[0] - 0.03;
       driverLng = pickupCoords[1] - 0.03;

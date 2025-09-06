@@ -67,6 +67,15 @@ function logout() {
   // Redirect back to login page
   window.location.href = "admin.html";
 }
+// Protect dashboard
+if (window.location.pathname.endsWith("dashboard.html")) {
+  const isLoggedIn = localStorage.getItem("loggedIn");
+  if (!isLoggedIn) {
+    // If not logged in, send to login page
+    window.location.href = "admin.html";
+  }
+}
+
 
 
 

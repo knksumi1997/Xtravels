@@ -22,59 +22,32 @@
       border-radius: 10px;
       box-shadow: 0 0 5px limegreen;
     }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
   <h1>🚖 Admin Dashboard</h1>
   <p>Welcome, Admin! Here you can manage Xtravels.</p>
-<button onclick="logout()" style="
-  background: red;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 20px;
-">Logout</button>
 
-  <div class="card">📊 View Bookings (coming soon)</div>
-<div class="card">
-  <h2>👥 Manage Users</h2>
-  <table border="1" width="100%" id="usersTable">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Role</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td>Amit Kumar</td>
-        <td>Rider</td>
-        <td><button onclick="deleteUser(this)">Delete</button></td>
-      </tr>
-      <tr>
-        <td>2</td>
-        <td>Rohit Sharma</td>
-        <td>Driver</td>
-        <td><button onclick="deleteUser(this)">Delete</button></td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="card">
+    <h2>👥 Manage Users</h2>
+    <ul>
+      <li>User 1 – City Ride</li>
+      <li>User 2 – Outstation</li>
+      <li>User 3 – Rental</li>
+    </ul>
+  </div>
 
-  <h3>Add New User</h3>
-  <input type="text" id="newName" placeholder="Enter name">
-  <select id="newRole">
-    <option value="Rider">Rider</option>
-    <option value="Driver">Driver</option>
-  </select>
-  <button onclick="addUser()">Add User</button>
-</div>
-
-  <div class="card">⚙️ Settings (coming soon)</div>
+  <div class="card">
+    <h2>📊 Bookings</h2>
+    <p>3 Total Bookings Today</p>
+  </div>
 
 </body>
 </html>

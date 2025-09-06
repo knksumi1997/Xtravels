@@ -63,5 +63,10 @@ function addUser() {
 
   document.getElementById("newName").value = "";
 }
+function logout() {
+  // Redirect back to login page
+  window.location.href = "admin.html";
+}
+
 
 

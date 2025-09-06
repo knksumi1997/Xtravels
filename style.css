@@ -74,4 +74,32 @@ alert("Welcome to Xtravels! 🚖");
 function bookNow() {
   alert("Booking feature coming soon!");
 }
+/* Booking Form Styles */
+#booking {
+  background: #222;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 0 0 5px limegreen;
+  text-align: center;
+}
+#booking input, 
+#booking select {
+  display: block;
+  width: 80%;
+  margin: 10px auto;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+}
+#booking button {
+  background: limegreen;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+}
+
 

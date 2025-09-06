@@ -29,11 +29,22 @@
     li {
       margin: 5px 0;
     }
+    button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>🚖 Admin Dashboard</h1>
   <p>Welcome, Admin! Here you can manage Xtravels.</p>
+
+  <button onclick="logout()">Logout</button>
 
   <div class="card">
     <h2>👥 Manage Users</h2>
@@ -49,5 +60,15 @@
     <p>3 Total Bookings Today</p>
   </div>
 
+  <div class="card">
+    <h2>⚙️ Settings</h2>
+    <p>Basic settings can be added here.</p>
+  </div>
+
+  <script>
+    function logout() {
+      window.location.href = "admin.html";
+    }
+  </script>
 </body>
 </html>

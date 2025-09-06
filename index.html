@@ -89,16 +89,16 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    let map, pickupMarker, dropMarker, pickupCoords, dropCoords;
+    let map, pickupMarker, dropMarker, pickupCoords, dropCoords, routeLine;
     let driverMap, driverMarker, driverLat, driverLng, interval;
 
     // Initialize booking map
-    map = L.map('map').setView([20.5937, 78.9629], 5); // India default view
+    map = L.map('map').setView([20.5937, 78.9629], 5); // India default
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    // Geocode function (Nominatim)
+    // Geocode function
     async function geocode(location) {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`);
       const data = await res.json();
@@ -122,6 +122,7 @@
 
       if (pickupMarker) map.removeLayer(pickupMarker);
       if (dropMarker) map.removeLayer(dropMarker);
+      if (routeLine) map.removeLayer(routeLine);
 
       pickupMarker = L.marker(pickupCoords).addTo(map).bindPopup("📍 " + pickup).openPopup();
       dropMarker = L.marker(dropCoords).addTo(map).bindPopup("🏁 " + drop);
@@ -135,8 +136,8 @@
         return;
       }
 
-      // Call OSRM API for driving distance
-      const url = `https://router.project-osrm.org/route/v1/driving/${pickupCoords[1]},${pickupCoords[0]};${dropCoords[1]},${dropCoords[0]}?overview=false`;
+      // OSRM API for route
+      const url = `https://router.project-osrm.org/route/v1/driving/${pickupCoords[1]},${pickupCoords[0]};${dropCoords[1]},${dropCoords[0]}?overview=full&geometries=geojson`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -145,14 +146,21 @@
         return;
       }
 
-      const distanceKm = data.routes[0].distance / 1000; // in km
-      const fare = Math.max(50, distanceKm * 18); // ₹18 per km, min ₹50
+      const distanceKm = data.routes[0].distance / 1000;
+      const fare = Math.max(50, distanceKm * 18);
+
+      // Draw route polyline
+      const routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      if (routeLine) map.removeLayer(routeLine);
+      routeLine = L.polyline(routeCoords, {color: 'lime'}).addTo(map);
+
+      map.fitBounds(routeLine.getBounds());
 
       document.getElementById("bookingCard").style.display = "none";
       document.getElementById("fareCard").style.display = "block";
 
       document.getElementById("fareText").innerText =
-        `Estimated Fare: ₹${fare.toFixed(0)} for ${distanceKm.toFixed(1)} km (driving distance)`;
+        `Estimated Fare: ₹${fare.toFixed(0)} for ${distanceKm.toFixed(1)} km`;
     }
 
     function backToBooking() {

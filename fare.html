@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xtravels - Fare Summary</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: limegreen;
+    }
+    .card {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 80%;
+      box-shadow: 0 0 5px limegreen;
+    }
+    button {
+      background: limegreen;
+      color: black;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      background: #00cc44;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚖 Fare Summary</h1>
+
+  <div class="card">
+    <p><b>Pickup:</b> <span id="pickup"></span></p>
+    <p><b>Drop:</b> <span id="drop"></span></p>
+    <p><b>Distance:</b> <span id="distance"></span> km</p>
+    <p><b>Fare:</b> ₹<span id="fare"></span></p>
+  </div>
+
+  <button onclick="confirmRide()">✅ Confirm Ride</button>
+  <button onclick="goBack()">⬅️ Cancel</button>
+
+  <script>
+    // Get details from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pickup = urlParams.get("pickup");
+    const drop = urlParams.get("drop");
+    const distance = urlParams.get("distance");
+    const fare = urlParams.get("fare");
+
+    document.getElementById("pickup").textContent = pickup;
+    document.getElementById("drop").textContent = drop;
+    document.getElementById("distance").textContent = parseFloat(distance).toFixed(2);
+    document.getElementById("fare").textContent = parseFloat(fare).toFixed(2);
+
+    function confirmRide() {
+      alert("✅ Ride Confirmed!\nPickup: " + pickup + "\nDrop: " + drop + "\nFare: ₹" + fare);
+      window.location.href = "index.html"; // Redirect back home
+    }
+
+    function goBack() {
+      window.location.href = "index.html"; // Cancel and go home
+    }
+  </script>
+</body>
+</html>

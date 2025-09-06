@@ -1,105 +1,85 @@
+/* General Page Styling */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #121212;
-  color: #f0f0f0;
-  transition: background 0.3s, color 0.3s;
+  background: #111;
+  color: #fff;
 }
+
+/* Navbar */
 header {
-  background: #000;
-  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-header h1 { color: #0f0; }
-nav a {
-  color: #ccc;
-  margin: 0 10px;
-  text-decoration: none;
-}
-nav a:hover { color: #0f0; }
-.toggle-btn {
-  background: #0f0;
-  border: none;
-  padding: 8px 15px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-section { padding: 50px 20px; text-align: center; }
-.card {
-  background: #1e1e1e;
-  padding: 20px;
-  border-radius: 10px;
-  margin: 15px;
-  display: inline-block;
-  width: 250px;
-}
-form {
-  max-width: 400px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-}
-form input, form textarea, form button {
-  margin: 8px 0;
-  padding: 10px;
-  border-radius: 5px;
-  border: none;
-}
-form button {
-  background: #0f0;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-footer {
+  padding: 15px 30px;
   background: #000;
-  padding: 15px;
-  text-align: center;
 }
-/* Light Mode */
-body.light {
-  background: #fff;
-  color: #000;
+header h1 {
+  color: limegreen;
 }
-body.light header { background: #f0f0f0; }
-body.light nav a { color: #333; }
-body.light .card { background: #f9f9f9; }
-body.light footer { background: #f0f0f0; }
-// Simple welcome alert
-alert("Welcome to Xtravels! 🚖");
+nav a {
+  margin: 0 10px;
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+nav a:hover {
+  color: limegreen;
+}
 
-// Booking button function
-function bookNow() {
-  alert("Booking feature coming soon!");
+/* Sections */
+h2 {
+  text-align: center;
+  margin-top: 30px;
 }
-/* Booking Form Styles */
-#booking {
+
+/* Cards (Services) */
+.card {
   background: #222;
   padding: 20px;
-  margin: 20px 0;
   border-radius: 10px;
   box-shadow: 0 0 5px limegreen;
   text-align: center;
+  width: 150px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-#booking input, 
-#booking select {
-  display: block;
-  width: 80%;
-  margin: 10px auto;
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px limegreen;
+}
+
+/* Booking Form */
+.form-container {
+  text-align: center;
+  margin: 20px;
+}
+input {
   padding: 10px;
-  border: none;
+  margin: 10px;
+  width: 250px;
   border-radius: 5px;
+  border: none;
 }
-#booking button {
+button {
+  padding: 10px 20px;
   background: limegreen;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  color: #000;
+  font-weight: bold;
   cursor: pointer;
-  color: white;
-  font-size: 16px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+button:hover {
+  background: #00cc44;
 }
 
-
+/* Map */
+#map {
+  height: 400px;
+  width: 90%;
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0 0 10px limegreen;
+}

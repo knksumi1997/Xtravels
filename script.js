@@ -1,81 +1,26 @@
-function toggleMode() {
-  document.body.classList.toggle("light");
-}
-body {
-  background: #111;
-  color: #f5f5f5;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin: 0;
-  padding: 40px;
-}
+// Handle Login
+function login() {
+  let user = document.getElementById("username").value;
+  let pass = document.getElementById("password").value;
 
-h1 {
-  color: limegreen;
-  margin-bottom: 10px;
-}
-
-p {
-  font-size: 18px;
-  margin-bottom: 20px;
-}
-
-button {
-  background: limegreen;
-  color: black;
-  border: none;
-  padding: 12px 24px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #00cc66;
-}
-// Manage Users (Dummy Only)
-function deleteUser(button) {
-  let row = button.parentElement.parentElement;
-  row.remove();
-}
-
-function addUser() {
-  let name = document.getElementById("newName").value;
-  let role = document.getElementById("newRole").value;
-
-  if (name.trim() === "") {
-    alert("Please enter a name");
-    return;
+  if (user === "admin" && pass === "1234") {
+    // Save login state
+    localStorage.setItem("loggedIn", "true");
+    window.location.href = "dashboard.html";
+  } else {
+    document.getElementById("error").innerText = "Invalid username or password!";
   }
-
-  let table = document.getElementById("usersTable").getElementsByTagName("tbody")[0];
-  let newRow = table.insertRow();
-
-  let idCell = newRow.insertCell(0);
-  let nameCell = newRow.insertCell(1);
-  let roleCell = newRow.insertCell(2);
-  let actionCell = newRow.insertCell(3);
-
-  idCell.innerHTML = table.rows.length; // auto increment
-  nameCell.innerHTML = name;
-  roleCell.innerHTML = role;
-  actionCell.innerHTML = `<button onclick="deleteUser(this)">Delete</button>`;
-
-  document.getElementById("newName").value = "";
 }
+
+// Handle Logout
 function logout() {
-  // Redirect back to login page
+  localStorage.removeItem("loggedIn");
   window.location.href = "admin.html";
 }
-// Protect dashboard
-if (window.location.pathname.endsWith("dashboard.html")) {
-  const isLoggedIn = localStorage.getItem("loggedIn");
-  if (!isLoggedIn) {
-    // If not logged in, send to login page
+
+// Protect Dashboard
+if (window.location.pathname.includes("dashboard.html")) {
+  if (localStorage.getItem("loggedIn") !== "true") {
     window.location.href = "admin.html";
   }
 }
-
-
-
-

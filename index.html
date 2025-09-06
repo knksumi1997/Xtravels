@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xtravels - Book a Ride</title>
+  <title>Xtravels App</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     body {
@@ -11,25 +11,37 @@
       background: #111;
       color: white;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       text-align: center;
     }
-    h1 {
-      color: limegreen;
+    header {
+      background: limegreen;
+      padding: 15px;
+      font-size: 22px;
+      font-weight: bold;
+      color: black;
     }
     .card {
       background: #222;
       padding: 20px;
       border-radius: 10px;
       margin: 20px auto;
-      width: 80%;
+      width: 90%;
+      max-width: 500px;
       box-shadow: 0 0 5px limegreen;
     }
     #map {
       height: 400px;
       width: 100%;
       border-radius: 10px;
-      margin-top: 20px;
+      margin-top: 15px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
     }
     button {
       background: limegreen;
@@ -48,55 +60,141 @@
   </style>
 </head>
 <body>
-  <h1>🚖 Book Your Ride - Xtravels</h1>
+  <header>🚖 Xtravels</header>
 
-  <div class="card">
-    <p>Click on the map to set <b>Pickup</b> and <b>Drop</b> locations.</p>
-    <p><b>First click = Pickup</b>, <b>Second click = Drop</b></p>
+  <div class="card" id="bookingCard">
+    <h2>Book Your Ride</h2>
+    <input type="text" id="pickup" placeholder="Enter Pickup Location">
+    <input type="text" id="drop" placeholder="Enter Drop Location">
+    <button onclick="setLocations()">Set Locations</button>
+    <div id="map"></div>
+    <button onclick="estimateFare()">Estimate Fare</button>
   </div>
 
-  <div id="map"></div>
-  <button id="confirmRide" disabled>✅ Confirm Ride</button>
+  <div class="card" id="fareCard" style="display:none;">
+    <h2>Fare Estimate</h2>
+    <p id="fareText"></p>
+    <button onclick="assignDriver()">Confirm Ride</button>
+    <button onclick="backToBooking()">Back</button>
+  </div>
+
+  <div class="card" id="driverCard" style="display:none;">
+    <h2>Driver Assigned</h2>
+    <p><b>Name:</b> Ramesh Kumar</p>
+    <p><b>Car:</b> Toyota Etios (KA-01-1234)</p>
+    <p><b>Phone:</b> +91 9876543210</p>
+    <div id="driverMap"></div>
+    <button onclick="cancelRide()">❌ Cancel Ride</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    let pickup = null;
-    let drop = null;
-    let markers = [];
+    let map, pickupMarker, dropMarker, pickupCoords, dropCoords;
+    let driverMap, driverMarker, driverLat, driverLng, interval;
 
-    // Initialize map
-    const map = L.map('map').setView([12.9716, 77.5946], 13);
-
-    // Tile layer
+    // Initialize booking map
+    map = L.map('map').setView([12.9716, 77.5946], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    // Click event for setting pickup and drop
-    map.on("click", function(e) {
-      if (!pickup) {
-        pickup = e.latlng;
-        const marker = L.marker(pickup).addTo(map).bindPopup("📍 Pickup").openPopup();
-        markers.push(marker);
-      } else if (!drop) {
-        drop = e.latlng;
-        const marker = L.marker(drop).addTo(map).bindPopup("🏁 Drop").openPopup();
-        markers.push(marker);
+    function setLocations() {
+      const pickup = document.getElementById("pickup").value || "Pickup Point";
+      const drop = document.getElementById("drop").value || "Drop Point";
 
-        // Enable confirm button
-        document.getElementById("confirmRide").disabled = false;
-      }
-    });
+      pickupCoords = [12.9716, 77.5946]; // default Bangalore
+      dropCoords = [12.9816, 77.6046];   // nearby
 
-    // Confirm button → send pickup & drop to fare.html
-    document.getElementById("confirmRide").addEventListener("click", function() {
-      if (pickup && drop) {
-        const url = `fare.html?pickupLat=${pickup.lat}&pickupLng=${pickup.lng}&dropLat=${drop.lat}&dropLng=${drop.lng}`;
-        window.location.href = url;
-      } else {
-        alert("Please select both Pickup and Drop.");
+      if (pickupMarker) map.removeLayer(pickupMarker);
+      if (dropMarker) map.removeLayer(dropMarker);
+
+      pickupMarker = L.marker(pickupCoords).addTo(map).bindPopup("📍 " + pickup).openPopup();
+      dropMarker = L.marker(dropCoords).addTo(map).bindPopup("🏁 " + drop);
+
+      map.fitBounds([pickupCoords, dropCoords], {padding: [50, 50]});
+    }
+
+    function estimateFare() {
+      if (!pickupCoords || !dropCoords) {
+        alert("Please set pickup and drop first.");
+        return;
       }
-    });
+      document.getElementById("bookingCard").style.display = "none";
+      document.getElementById("fareCard").style.display = "block";
+
+      // Simple distance formula
+      let dx = dropCoords[0] - pickupCoords[0];
+      let dy = dropCoords[1] - pickupCoords[1];
+      let distance = Math.sqrt(dx*dx + dy*dy) * 111; // rough km
+      let fare = Math.max(50, distance * 20);
+
+      document.getElementById("fareText").innerText = 
+        `Estimated Fare: ₹${fare.toFixed(0)} for ${distance.toFixed(1)} km`;
+    }
+
+    function backToBooking() {
+      document.getElementById("fareCard").style.display = "none";
+      document.getElementById("bookingCard").style.display = "block";
+    }
+
+    function assignDriver() {
+      document.getElementById("fareCard").style.display = "none";
+      document.getElementById("driverCard").style.display = "block";
+
+      // Initialize driver map
+      driverMap = L.map('driverMap').setView(pickupCoords, 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(driverMap);
+
+      // Add pickup and drop
+      L.marker(pickupCoords).addTo(driverMap).bindPopup("📍 Pickup");
+      L.marker(dropCoords).addTo(driverMap).bindPopup("🏁 Drop");
+
+      // Driver starts far away
+      driverLat = pickupCoords[0] - 0.03;
+      driverLng = pickupCoords[1] - 0.03;
+
+      driverMarker = L.marker([driverLat, driverLng], {icon: L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+        iconSize: [40, 40]
+      })}).addTo(driverMap).bindPopup("🚖 Driver");
+
+      interval = setInterval(moveDriverToPickup, 2000);
+    }
+
+    function moveDriverToPickup() {
+      if (Math.abs(driverLat - pickupCoords[0]) < 0.0005 && Math.abs(driverLng - pickupCoords[1]) < 0.0005) {
+        driverMarker.bindPopup("✅ Driver Arrived!").openPopup();
+        clearInterval(interval);
+        setTimeout(() => {
+          interval = setInterval(moveDriverToDrop, 2000);
+        }, 3000);
+        return;
+      }
+
+      driverLat += (pickupCoords[0] - driverLat) * 0.05;
+      driverLng += (pickupCoords[1] - driverLng) * 0.05;
+      driverMarker.setLatLng([driverLat, driverLng]);
+    }
+
+    function moveDriverToDrop() {
+      if (Math.abs(driverLat - dropCoords[0]) < 0.0005 && Math.abs(driverLng - dropCoords[1]) < 0.0005) {
+        driverMarker.bindPopup("🏁 Ride Completed!").openPopup();
+        clearInterval(interval);
+        return;
+      }
+
+      driverLat += (dropCoords[0] - driverLat) * 0.05;
+      driverLng += (dropCoords[1] - driverLng) * 0.05;
+      driverMarker.setLatLng([driverLat, driverLng]);
+    }
+
+    function cancelRide() {
+      clearInterval(interval);
+      alert("❌ Ride Cancelled");
+      location.reload();
+    }
   </script>
 </body>
 </html>

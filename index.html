@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  < name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xtravels - Ride Booking</title>
 
   <!-- Leaflet CSS -->
@@ -145,7 +145,7 @@
         "💰 Fare: ₹" + fare.toFixed(2) + " (" + tripDistance.toFixed(2) + " km)";
     }
 
-    // Dummy booking function
+    // Redirect to fare.html with details
     function bookRide() {
       let pickup = document.getElementById("pickup").value;
       let drop = document.getElementById("drop").value;
@@ -153,7 +153,8 @@
         alert("Please select pickup and drop locations!");
         return;
       }
-      alert("🚖 Ride booked!\nPickup: " + pickup + "\nDrop: " + drop + "\nFare: ₹" + (20 + tripDistance * 10).toFixed(2));
+      let fare = 20 + tripDistance * 10;
+      window.location.href = `fare.html?pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}&distance=${tripDistance}&fare=${fare}`;
     }
   </script>
 </body>

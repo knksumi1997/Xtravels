@@ -62,13 +62,16 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Get pickup location from URL
+    // Get pickup & drop from URL
     const params = new URLSearchParams(window.location.search);
     const pickupLat = parseFloat(params.get("pickupLat"));
     const pickupLng = parseFloat(params.get("pickupLng"));
+    const dropLat = parseFloat(params.get("dropLat"));
+    const dropLng = parseFloat(params.get("dropLng"));
 
-    // Fallback if no pickup (default Bangalore center)
+    // Fallback (Bangalore center if missing)
     const pickup = [pickupLat || 12.9716, pickupLng || 77.5946];
+    const drop = [dropLat || 12.9816, dropLng || 77.6046];
 
     // Driver starting location (dummy - a bit away)
     let driverLat = pickup[0] - 0.02;
@@ -83,8 +86,10 @@
     }).addTo(map);
 
     // Pickup marker
-    const pickupMarker = L.marker(pickup).addTo(map)
-      .bindPopup("📍 Pickup Location").openPopup();
+    L.marker(pickup).addTo(map).bindPopup("📍 Pickup Location").openPopup();
+
+    // Drop marker
+    L.marker(drop).addTo(map).bindPopup("🏁 Drop Location");
 
     // Driver marker
     let driverMarker = L.marker([driverLat, driverLng], {icon: L.icon({

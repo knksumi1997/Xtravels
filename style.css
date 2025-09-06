@@ -67,3 +67,11 @@ body.light header { background: #f0f0f0; }
 body.light nav a { color: #333; }
 body.light .card { background: #f9f9f9; }
 body.light footer { background: #f0f0f0; }
+// Simple welcome alert
+alert("Welcome to Xtravels! 🚖");
+
+// Booking button function
+function bookNow() {
+  alert("Booking feature coming soon!");
+}
+

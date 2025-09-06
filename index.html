@@ -1,104 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xtravels - Ride Booking</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: #000;
+    }
+    header h1 {
+      color: limegreen;
+    }
+    nav a {
+      margin: 0 10px;
+      color: #fff;
+      text-decoration: none;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 30px;
+    }
+    #map {
+      height: 400px;
+      width: 90%;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px limegreen;
+    }
+    .form-container {
+      text-align: center;
+      margin: 20px;
+    }
+    input {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      background: limegreen;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Navbar -->
   <header>
     <h1>Xtravels</h1>
     <nav>
       <a href="#about">About</a>
       <a href="#services">Services</a>
       <a href="#booking">Booking</a>
-      <a href="#reviews">Reviews</a>
-      <a href="#contact">Contact</a>
+      <a href="#map">Map</a>
+      <a href="admin.html">Admin</a>
     </nav>
-    <button class="toggle-btn" onclick="toggleMode()">🌙/☀️</button>
   </header>
 
+  <!-- About -->
   <section id="about">
     <h2>About Us</h2>
-    <p>Xtravels is your trusted ride-sharing partner, offering safe, fast, and affordable rides like Uber and Ola.</p>
+    <p style="text-align:center;">Xtravels is your trusted ride-sharing partner, offering safe, fast, and affordable rides like Uber and Ola.</p>
   </section>
 
- <section id="services">
+  <!-- Services -->
+  <section id="services">
     <h2>Our Services</h2>
-    <a href="city.html" class="card">🚖 City Rides</a>
-    <a href="outstation.html" class="card">🚘 Outstation</a>
-    <a href="rentals.html" class="card">🚐 Rentals</a>
-</section>
+    <div style="display:flex;justify-content:center;gap:20px;margin-top:20px;">
+      <div class="card">🚖 City Rides</div>
+      <div class="card">🚘 Outstation</div>
+      <div class="card">🚐 Rentals</div>
+    </div>
+  </section>
 
-<section id="booking">
-  <h2>Book a Ride</h2>
-  <form id="bookingForm" onsubmit="submitBooking(event)">
-    <input type="text" id="pickup" placeholder="Enter Pickup Location" required>
-    <input type="text" id="drop" placeholder="Enter Drop Location" required>
-    <select id="rideType" required>
-      <option value="">Select Ride Type</option>
-      <option value="City Ride">🚖 City Ride</option>
-      <option value="Outstation">🚘 Outstation</option>
-      <option value="Rental">🚐 Rental</option>
-    </select>
-    <button type="submit">Confirm Booking</button>
-  </form>
-  <p id="confirmation" style="color: limegreen; margin-top: 10px;"></p>
-</section>
-
+  <!-- Booking -->
   <section id="booking">
     <h2>Book Your Ride</h2>
-    <form>
-      <input type="text" placeholder="Pickup Location" required />
-      <input type="text" placeholder="Drop Location" required />
-      <input type="datetime-local" required />
-      <button type="submit">Book Now</button>
-    </form>
+    <div class="form-container">
+      <input type="text" id="pickup" placeholder="Pickup Location" readonly>
+      <input type="text" id="drop" placeholder="Drop Location">
+      <br>
+      <button onclick="bookRide()">Confirm Booking</button>
+    </div>
   </section>
 
-  <section id="reviews">
-    <h2>Customer Reviews</h2>
-    <div class="card">⭐️⭐️⭐️⭐️⭐️ “Very smooth booking!”</div>
-    <div class="card">⭐️⭐️⭐️⭐️ “Affordable and quick.”</div>
-    <div class="card">⭐️⭐️⭐️⭐️⭐️ “Driver was very polite.”</div>
-  </section>
+  <!-- Map -->
+  <h2>🌍 Select Pickup on Map</h2>
+  <div id="map"></div>
 
-  <section id="contact">
-    <h2>Contact Us</h2>
-    <form>
-      <input type="text" placeholder="Your Name" required />
-      <input type="email" placeholder="Your Email" required />
-      <textarea placeholder="Message" rows="4" required></textarea>
-      <button type="submit">Send Message</button>
-    </form>
-    <p>Email: support@xtravels.com | Phone: +91-9999999999</p>
-  </section>
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([20.5937, 78.9629], 5); // Center India
 
-  <footer>
-    <p>© 2025 Xtravels. All Rights Reserved.</p>
-  </footer>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xtravels</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <h1>🚖 Welcome to Xtravels</h1>
-  <p>Your ride, your way!</p>
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-  <button onclick="bookNow()">Book Now</button>
+    var pickupMarker;
 
-  <script src="script.js"></script>
+    // On map click set pickup location
+    map.on('click', function(e) {
+      if (pickupMarker) {
+        map.removeLayer(pickupMarker);
+      }
+      pickupMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
+        .bindPopup("Pickup Location Selected")
+        .openPopup();
+
+      document.getElementById("pickup").value =
+        e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+    });
+
+    // Dummy booking function
+    function bookRide() {
+      let pickup = document.getElementById("pickup").value;
+      let drop = document.getElementById("drop").value;
+      if (!pickup || !drop) {
+        alert("Please select pickup and enter drop location!");
+        return;
+      }
+      alert("🚖 Ride booked!\nPickup: " + pickup + "\nDrop: " + drop);
+    }
+  </script>
+
 </body>
 </html>
-
-  <script src="script.js"></script>
-</body>
-</html>
-
-
-

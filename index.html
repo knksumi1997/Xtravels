@@ -57,6 +57,12 @@
     button:hover {
       background: #00cc44;
     }
+    #eta {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: lime;
+    }
   </style>
 </head>
 <body>
@@ -84,6 +90,7 @@
     <p><b>Car:</b> Toyota Etios (KA-01-1234)</p>
     <p><b>Phone:</b> +91 9876543210</p>
     <div id="driverMap"></div>
+    <p id="eta">⏳ Calculating ETA...</p>
     <button onclick="cancelRide()">❌ Cancel Ride</button>
   </div>
 
@@ -91,6 +98,7 @@
   <script>
     let map, pickupMarker, dropMarker, pickupCoords, dropCoords, routeLine, routeCoords;
     let driverMap, driverMarker, driverLat, driverLng, interval, driverRouteLine;
+    let etaTimer;
 
     // Initialize booking map
     map = L.map('map').setView([20.5937, 78.9629], 5);
@@ -193,6 +201,20 @@
       })}).addTo(driverMap).bindPopup("🚖 Driver");
 
       interval = setInterval(moveDriverToPickup, 2000);
+
+      // Start ETA timer
+      etaTimer = setInterval(updateETA, 2000);
+    }
+
+    function updateETA() {
+      let etaElem = document.getElementById("eta");
+      let remainingKm = getDistance(driverLat, driverLng, pickupCoords[0], pickupCoords[1]);
+      let speedKmph = 30; // Assume avg 30 km/h in city
+      let etaMin = Math.max(1, (remainingKm / speedKmph) * 60);
+
+      if (interval && document.getElementById("driverCard").style.display === "block") {
+        etaElem.innerText = `⏳ Driver arriving in ${etaMin.toFixed(0)} mins`;
+      }
     }
 
     function moveDriverToPickup() {
@@ -214,6 +236,8 @@
       if (Math.abs(driverLat - dropCoords[0]) < 0.0005 && Math.abs(driverLng - dropCoords[1]) < 0.0005) {
         driverMarker.bindPopup("🏁 Ride Completed!").openPopup();
         clearInterval(interval);
+        clearInterval(etaTimer);
+        document.getElementById("eta").innerText = "✅ Ride Completed";
         return;
       }
 
@@ -224,8 +248,22 @@
 
     function cancelRide() {
       clearInterval(interval);
+      clearInterval(etaTimer);
       alert("❌ Ride Cancelled");
       location.reload();
+    }
+
+    // Utility: Haversine formula
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // in km
     }
   </script>
 </body>

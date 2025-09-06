@@ -4,140 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xtravels - Ride Booking</title>
-  <link rel="stylesheet" href="style.css">
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <!-- Leaflet Routing Machine CSS & JS -->
+  <!-- Routing Machine CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #111;
-      color: #fff;
+      color: white;
     }
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 30px;
-      background: #000;
-    }
-    header h1 {
-      color: limegreen;
-    }
-    nav a {
-      margin: 0 10px;
-      color: #fff;
-      text-decoration: none;
-    }
-    nav a:hover {
-      color: limegreen;
-    }
-    h2 {
+      background: limegreen;
+      padding: 15px;
       text-align: center;
-      margin-top: 30px;
+      font-size: 22px;
+      font-weight: bold;
+      color: black;
     }
     #map {
-      height: 400px;
-      width: 90%;
-      margin: 20px auto;
-      border-radius: 10px;
-      box-shadow: 0 0 10px limegreen;
+      height: 70vh;
+      width: 100%;
     }
-    .form-container {
-      text-align: center;
-      margin: 20px;
+    .booking-panel {
+      padding: 15px;
+      background: #222;
     }
-    input {
+    .booking-panel input {
+      width: 100%;
       padding: 10px;
-      margin: 10px;
-      width: 250px;
+      margin: 5px 0;
+      border: none;
       border-radius: 5px;
-      border: none;
     }
-    button {
-      padding: 10px 20px;
+    .booking-panel button {
+      width: 100%;
+      padding: 12px;
       background: limegreen;
+      color: black;
       border: none;
-      color: #000;
+      border-radius: 5px;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+    }
+    .fare-box {
+      margin-top: 10px;
+      padding: 10px;
+      background: #333;
       border-radius: 5px;
-    }
-    button:hover {
-      background: #00cc44;
-    }
-    .card {
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 5px limegreen;
-      text-align: center;
-      width: 150px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .card:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 10px limegreen;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
+  <header>🚖 Xtravels - Book Your Ride</header>
 
-  <!-- Navbar -->
-  <header>
-    <h1>Xtravels</h1>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#booking">Booking</a>
-      <a href="#map">Map</a>
-      <a href="admin.html">Admin</a>
-    </nav>
-  </header>
-
-  <!-- About -->
-  <section id="about">
-    <h2>About Us</h2>
-    <p style="text-align:center;">Xtravels is your trusted ride-sharing partner, offering safe, fast, and affordable rides like Uber and Ola.</p>
-  </section>
-
-  <!-- Services -->
-  <section id="services">
-    <h2>Our Services</h2>
-    <div style="display:flex;justify-content:center;gap:20px;margin-top:20px;">
-      <div class="card">🚖 City Rides</div>
-      <div class="card">🚘 Outstation</div>
-      <div class="card">🚐 Rentals</div>
-    </div>
-  </section>
-
-  <!-- Booking -->
-  <section id="booking">
-    <h2>Book Your Ride</h2>
-    <div class="form-container">
-      <input type="text" id="pickup" placeholder="Pickup Location" readonly>
-      <input type="text" id="drop" placeholder="Drop Location" readonly>
-      <br>
-      <button onclick="bookRide()">Confirm Booking</button>
-    </div>
-  </section>
-
-  <!-- Map -->
-  <h2>🌍 Select Pickup & Drop on Map</h2>
   <div id="map"></div>
+
+  <div class="booking-panel">
+    <input type="text" id="pickup" placeholder="Pickup Location (click map)">
+    <input type="text" id="drop" placeholder="Drop Location (click map)">
+    <div id="fare" class="fare-box">💰 Fare: --</div>
+    <button onclick="bookRide()">Book Ride</button>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Routing Machine JS -->
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
   <script>
     // Initialize map
-    var map = L.map('map').setView([20.5937, 78.9629], 5); // Center India
+    var map = L.map('map').setView([20.5937, 78.9629], 5); // India center
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -146,8 +88,8 @@
 
     var pickupMarker, dropMarker, control;
     var isPickupSet = false;
+    var tripDistance = 0; // distance in km
 
-    // On map click
     map.on('click', function(e) {
       if (!isPickupSet) {
         // Set pickup
@@ -159,7 +101,7 @@
         document.getElementById("pickup").value =
           e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
 
-        isPickupSet = true; // Next click = drop
+        isPickupSet = true;
       } else {
         // Set drop
         if (dropMarker) map.removeLayer(dropMarker);
@@ -170,12 +112,12 @@
         document.getElementById("drop").value =
           e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
 
-        // Remove old route if exists
+        // Remove old route
         if (control) {
           map.removeControl(control);
         }
 
-        // Draw route
+        // Draw new route
         control = L.Routing.control({
           waypoints: [
             pickupMarker.getLatLng(),
@@ -185,11 +127,23 @@
           lineOptions: {
             styles: [{ color: 'limegreen', weight: 4 }]
           }
+        }).on('routesfound', function(e) {
+          tripDistance = e.routes[0].summary.totalDistance / 1000; // in km
+          calculateFare();
         }).addTo(map);
 
-        isPickupSet = false; // Reset for next booking
+        isPickupSet = false;
       }
     });
+
+    // Fare calculation
+    function calculateFare() {
+      let baseFare = 20; // ₹20 base fare
+      let perKm = 10;    // ₹10 per km
+      let fare = baseFare + (tripDistance * perKm);
+      document.getElementById("fare").innerText =
+        "💰 Fare: ₹" + fare.toFixed(2) + " (" + tripDistance.toFixed(2) + " km)";
+    }
 
     // Dummy booking function
     function bookRide() {
@@ -199,9 +153,8 @@
         alert("Please select pickup and drop locations!");
         return;
       }
-      alert("🚖 Ride booked!\nPickup: " + pickup + "\nDrop: " + drop);
+      alert("🚖 Ride booked!\nPickup: " + pickup + "\nDrop: " + drop + "\nFare: ₹" + (20 + tripDistance * 10).toFixed(2));
     }
   </script>
-
 </body>
 </html>

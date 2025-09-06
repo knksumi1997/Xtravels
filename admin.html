@@ -4,75 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login - Xtravels</title>
-  <link rel="stylesheet" href="style.css">
   <style>
     body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #111;
-      color: white;
-      font-family: Arial, sans-serif;
     }
     .login-box {
       background: #222;
-      padding: 30px;
+      padding: 20px;
       border-radius: 10px;
+      box-shadow: 0 0 5px limegreen;
       text-align: center;
-      width: 300px;
-      box-shadow: 0 0 10px limegreen;
     }
     input {
       display: block;
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
+      margin: 10px auto;
+      padding: 8px;
       border: none;
       border-radius: 5px;
     }
     button {
       background: limegreen;
       border: none;
-      padding: 10px;
-      width: 100%;
+      padding: 10px 20px;
       border-radius: 5px;
       cursor: pointer;
-    }
-    button:hover {
-      background: #00cc66;
+      color: white;
     }
   </style>
 </head>
 <body>
   <div class="login-box">
-    <h2>Admin Login</h2>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <h1>Admin Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
     <button onclick="login()">Login</button>
-    <p id="message"></p>
+    <p id="error" style="color:red;"></p>
   </div>
 
-  <script>
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      const msg = document.getElementById("message");
-
-      // Change these credentials to whatever you want
-      const correctUser = "admin";
-      const correctPass = "1234";
-
-      if (user === correctUser && pass === correctPass) {
-        msg.style.color = "limegreen";
-        msg.textContent = "✅ Login successful!";
-        // Redirect to admin dashboard page (create later)
-        window.location.href = "dashboard.html";
-      } else {
-        msg.style.color = "red";
-        msg.textContent = "❌ Invalid username or password!";
-      }
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

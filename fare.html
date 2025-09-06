@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xtravels - Fare Summary</title>
+  <title>Xtravels - Fare Estimation</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,6 +26,12 @@
       width: 80%;
       box-shadow: 0 0 5px limegreen;
     }
+    #map {
+      height: 400px;
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
     button {
       background: limegreen;
       color: black;
@@ -33,7 +41,7 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      margin: 10px;
+      margin-top: 15px;
     }
     button:hover {
       background: #00cc44;
@@ -41,38 +49,63 @@
   </style>
 </head>
 <body>
-  <h1>🚖 Fare Summary</h1>
+  <h1>💰 Fare Estimation</h1>
 
-  <div class="card">
-    <p><b>Pickup:</b> <span id="pickup"></span></p>
-    <p><b>Drop:</b> <span id="drop"></span></p>
-    <p><b>Distance:</b> <span id="distance"></span> km</p>
-    <p><b>Fare:</b> ₹<span id="fare"></span></p>
+  <div class="card" id="fareDetails">
+    <p>Calculating route...</p>
   </div>
 
-  <button onclick="confirmRide()">✅ Confirm Ride</button>
-  <button onclick="goBack()">⬅️ Cancel</button>
+  <div id="map"></div>
+  <button id="confirmRide">✅ Confirm Ride</button>
 
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
-    // Get details from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const pickup = urlParams.get("pickup");
-    const drop = urlParams.get("drop");
-    const distance = urlParams.get("distance");
-    const fare = urlParams.get("fare");
+    // Get pickup & drop from URL
+    const params = new URLSearchParams(window.location.search);
+    const pickupLat = parseFloat(params.get("pickupLat"));
+    const pickupLng = parseFloat(params.get("pickupLng"));
+    const dropLat = parseFloat(params.get("dropLat"));
+    const dropLng = parseFloat(params.get("dropLng"));
 
-    document.getElementById("pickup").textContent = pickup;
-    document.getElementById("drop").textContent = drop;
-    document.getElementById("distance").textContent = parseFloat(distance).toFixed(2);
-    document.getElementById("fare").textContent = parseFloat(fare).toFixed(2);
+    const pickup = [pickupLat, pickupLng];
+    const drop = [dropLat, dropLng];
 
-    function confirmRide() {
-      window.location.href = "driver.html"; // ✅ Go to driver assignment page
-    }
+    // Initialize map
+    const map = L.map('map').setView(pickup, 13);
 
-    function goBack() {
-      window.location.href = "index.html"; // Cancel and go back home
-    }
+    // Tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Routing
+    L.Routing.control({
+      waypoints: [
+        L.latLng(pickup),
+        L.latLng(drop)
+      ],
+      routeWhileDragging: false,
+      show: false,
+      addWaypoints: false,
+    }).on('routesfound', function(e) {
+      let distanceMeters = e.routes[0].summary.totalDistance;
+      let distanceKm = (distanceMeters / 1000).toFixed(2);
+
+      let fare = 20 + (distanceKm * 10); // ₹20 base + ₹10/km
+
+      document.getElementById("fareDetails").innerHTML = `
+        <p><b>Pickup:</b> ${pickupLat.toFixed(4)}, ${pickupLng.toFixed(4)}</p>
+        <p><b>Drop:</b> ${dropLat.toFixed(4)}, ${dropLng.toFixed(4)}</p>
+        <p><b>Distance:</b> ${distanceKm} km</p>
+        <p><b>Estimated Fare:</b> ₹${fare.toFixed(2)}</p>
+      `;
+    }).addTo(map);
+
+    // Confirm ride
+    document.getElementById("confirmRide").addEventListener("click", function() {
+      window.location.href = "driver.html";
+    });
   </script>
 </body>
 </html>

@@ -102,9 +102,9 @@
       `;
     }).addTo(map);
 
-    // Confirm ride
+    // Confirm ride → pass pickup to driver.html
     document.getElementById("confirmRide").addEventListener("click", function() {
-      window.location.href = "driver.html";
+      window.location.href = `driver.html?pickupLat=${pickupLat}&pickupLng=${pickupLng}`;
     });
   </script>
 </body>

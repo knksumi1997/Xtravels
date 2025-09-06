@@ -2,160 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  < name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xtravels - Ride Booking</title>
-
-  <!-- Leaflet CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xtravels - Book a Ride</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- Routing Machine CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
       background: #111;
       color: white;
-    }
-    header {
-      background: limegreen;
-      padding: 15px;
+      margin: 0;
+      padding: 20px;
       text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      color: black;
+    }
+    h1 {
+      color: limegreen;
+    }
+    .card {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      width: 80%;
+      box-shadow: 0 0 5px limegreen;
     }
     #map {
-      height: 70vh;
+      height: 400px;
       width: 100%;
+      border-radius: 10px;
+      margin-top: 20px;
     }
-    .booking-panel {
-      padding: 15px;
-      background: #222;
-    }
-    .booking-panel input {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border: none;
-      border-radius: 5px;
-    }
-    .booking-panel button {
-      width: 100%;
-      padding: 12px;
+    button {
       background: limegreen;
       color: black;
+      padding: 12px 20px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      margin-top: 15px;
     }
-    .fare-box {
-      margin-top: 10px;
-      padding: 10px;
-      background: #333;
-      border-radius: 5px;
-      font-size: 16px;
+    button:hover {
+      background: #00cc44;
     }
   </style>
 </head>
 <body>
-  <header>🚖 Xtravels - Book Your Ride</header>
+  <h1>🚖 Book Your Ride - Xtravels</h1>
 
-  <div id="map"></div>
-
-  <div class="booking-panel">
-    <input type="text" id="pickup" placeholder="Pickup Location (click map)">
-    <input type="text" id="drop" placeholder="Drop Location (click map)">
-    <div id="fare" class="fare-box">💰 Fare: --</div>
-    <button onclick="bookRide()">Book Ride</button>
+  <div class="card">
+    <p>Click on the map to set <b>Pickup</b> and <b>Drop</b> locations.</p>
+    <p><b>First click = Pickup</b>, <b>Second click = Drop</b></p>
   </div>
 
-  <!-- Leaflet JS -->
+  <div id="map"></div>
+  <button id="confirmRide" disabled>✅ Confirm Ride</button>
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- Routing Machine JS -->
-  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-
   <script>
-    // Initialize map
-    var map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+    let pickup = null;
+    let drop = null;
+    let markers = [];
 
-    // Add OpenStreetMap tiles
+    // Initialize map
+    const map = L.map('map').setView([12.9716, 77.5946], 13);
+
+    // Tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    var pickupMarker, dropMarker, control;
-    var isPickupSet = false;
-    var tripDistance = 0; // distance in km
+    // Click event for setting pickup and drop
+    map.on("click", function(e) {
+      if (!pickup) {
+        pickup = e.latlng;
+        const marker = L.marker(pickup).addTo(map).bindPopup("📍 Pickup").openPopup();
+        markers.push(marker);
+      } else if (!drop) {
+        drop = e.latlng;
+        const marker = L.marker(drop).addTo(map).bindPopup("🏁 Drop").openPopup();
+        markers.push(marker);
 
-    map.on('click', function(e) {
-      if (!isPickupSet) {
-        // Set pickup
-        if (pickupMarker) map.removeLayer(pickupMarker);
-        pickupMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
-          .bindPopup("📍 Pickup Location")
-          .openPopup();
-
-        document.getElementById("pickup").value =
-          e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
-
-        isPickupSet = true;
-      } else {
-        // Set drop
-        if (dropMarker) map.removeLayer(dropMarker);
-        dropMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
-          .bindPopup("🏁 Drop Location")
-          .openPopup();
-
-        document.getElementById("drop").value =
-          e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
-
-        // Remove old route
-        if (control) {
-          map.removeControl(control);
-        }
-
-        // Draw new route
-        control = L.Routing.control({
-          waypoints: [
-            pickupMarker.getLatLng(),
-            dropMarker.getLatLng()
-          ],
-          routeWhileDragging: false,
-          lineOptions: {
-            styles: [{ color: 'limegreen', weight: 4 }]
-          }
-        }).on('routesfound', function(e) {
-          tripDistance = e.routes[0].summary.totalDistance / 1000; // in km
-          calculateFare();
-        }).addTo(map);
-
-        isPickupSet = false;
+        // Enable confirm button
+        document.getElementById("confirmRide").disabled = false;
       }
     });
 
-    // Fare calculation
-    function calculateFare() {
-      let baseFare = 20; // ₹20 base fare
-      let perKm = 10;    // ₹10 per km
-      let fare = baseFare + (tripDistance * perKm);
-      document.getElementById("fare").innerText =
-        "💰 Fare: ₹" + fare.toFixed(2) + " (" + tripDistance.toFixed(2) + " km)";
-    }
-
-    // Redirect to fare.html with details
-    function bookRide() {
-      let pickup = document.getElementById("pickup").value;
-      let drop = document.getElementById("drop").value;
-      if (!pickup || !drop) {
-        alert("Please select pickup and drop locations!");
-        return;
+    // Confirm button → send pickup & drop to fare.html
+    document.getElementById("confirmRide").addEventListener("click", function() {
+      if (pickup && drop) {
+        const url = `fare.html?pickupLat=${pickup.lat}&pickupLng=${pickup.lng}&dropLat=${drop.lat}&dropLng=${drop.lng}`;
+        window.location.href = url;
+      } else {
+        alert("Please select both Pickup and Drop.");
       }
-      let fare = 20 + tripDistance * 10;
-      window.location.href = `fare.html?pickup=${encodeURIComponent(pickup)}&drop=${encodeURIComponent(drop)}&distance=${tripDistance}&fare=${fare}`;
-    }
+    });
   </script>
 </body>
 </html>
